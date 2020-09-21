@@ -33,6 +33,20 @@ describe("Pact Verification", () => {
       pactUrls: [
         path.resolve(__dirname, "../../pacts/films_client-films_provider.json"),
       ],
+      stateHandlers: {
+        "Generate films": () => {
+          controller.filmRepository.clear();
+          controller.init_data();
+        },
+        "Clear repo": () => {
+          controller.filmRepository.clear();
+        },
+        "Generate Film 999": () => {
+          controller.filmRepository.insert(
+            new Film(999, "Film To Delete", "To DELETE", "2020")
+          );
+        },
+      },
     };
 
     return new Verifier(opts).verifyProvider().finally(() => {
