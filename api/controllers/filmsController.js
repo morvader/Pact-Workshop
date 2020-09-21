@@ -13,6 +13,12 @@ exports.list_init_data = function (req, res) {
   res.end();
 };
 
+exports.init_data = () => {
+  filmRepository.insert(new Film(1, "Star Wars", "Space", 1980));
+  filmRepository.insert(new Film(2, "Superman", "Comic", 1986));
+  filmRepository.insert(new Film(3, "Indiana Jones", "Adventures", 1985));
+};
+
 exports.list_all_films = function (req, res) {
   const response = {
     films: filmRepository.fetchAll(),
@@ -63,12 +69,6 @@ exports.delete_a_film = (req, res) => {
   res.end(JSON.stringify(response));
 };
 
-exports.init_data = () => {
-  filmRepository.insert(new Film(1, "Star Wars", "Space", 1980));
-  filmRepository.insert(new Film(2, "Superman", "Comic", 1986));
-  filmRepository.insert(new Film(3, "Indiana Jones", "Adventures", 1985));
-};
-
 exports.read_a_film = function (req, res) {
   var id = req.params.filmId;
 
@@ -82,28 +82,6 @@ exports.read_a_film = function (req, res) {
     response = "Film not found";
   }
 
-  res.writeHead(returnCode, {
-    "Content-Type": "application/json",
-  });
-  res.end(JSON.stringify(response));
-};
-
-exports.update_film = function (req, res) {
-  var id = req.params.filmId;
-  var updateFilm = Film.fromJson(req.body);
-
-  var filmExist = filmRepository.getById(id);
-
-  if (filmExist == undefined) {
-    returnCode = 404;
-    response = "Not found";
-  } else {
-    returnCode = 200;
-    filmRepository.update(id, updateFilm);
-    response = {
-      film: updateFilm,
-    };
-  }
   res.writeHead(returnCode, {
     "Content-Type": "application/json",
   });
