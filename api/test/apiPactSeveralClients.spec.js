@@ -25,6 +25,9 @@ const init = () => {
 const server = init();
 
 describe("Pruebas integración cliente", () => {
+  after(() => {
+    server.close();
+  });
   it("Verify Pact Insert", () => {
     let clienteInsert = {
       provider: "Films Provider",
