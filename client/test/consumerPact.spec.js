@@ -116,4 +116,32 @@ describe("Pact for Film Provider", () => {
       });
     });
   });
+  describe("Delete Film", () => {
+    before(() => {
+      return provider.addInteraction({
+        state: "Generate Film 999",
+        uponReceiving: "Delete Film",
+        withRequest: {
+          method: "DELETE",
+          path: "/films/999",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+        willRespondWith: {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: "Film Deleted",
+        },
+      });
+    });
+
+    it("delete existing film", () => {
+      return filmService.deleteFilm(999).then((response) => {
+        expect(response.statusCode).to.be.eq(200);
+      });
+    });
+  });
 });
