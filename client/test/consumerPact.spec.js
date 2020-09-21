@@ -12,8 +12,8 @@ const LOG_LEVEL = process.env.LOG_LEVEL || "WARN";
 const API_PORT = process.env.API_PORT || 5678;
 
 const provider = new Pact({
-  consumer: "Films Client",
-  provider: "Films Provider",
+  consumer: "FilmsClient",
+  provider: "FilmsProvider",
   port: API_PORT,
   log: path.resolve(process.cwd(), "logs", "pact.log"),
   dir: path.resolve(process.cwd(), "pacts"),
@@ -118,7 +118,7 @@ describe("Pact for Film Provider", () => {
   });
   describe("Delete Film", () => {
     before(() => {
-      return provider.addInteraction({
+      provider.addInteraction({
         state: "Generate Film 999",
         uponReceiving: "Delete Film",
         withRequest: {
@@ -136,11 +136,34 @@ describe("Pact for Film Provider", () => {
           body: "Film Deleted",
         },
       });
+      provider.addInteraction({
+        state: "",
+        uponReceiving: "Delete Film not found",
+        withRequest: {
+          method: "DELETE",
+          path: "/films/9",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+        willRespondWith: {
+          status: 404,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: "ID Not found",
+        },
+      });
     });
 
     it("delete existing film", () => {
       return filmService.deleteFilm(999).then((response) => {
         expect(response.statusCode).to.be.eq(200);
+      });
+    });
+    it("delete non existing film", () => {
+      return filmService.deleteFilm(9).then((response) => {
+        expect(response.statusCode).to.be.eq(404);
       });
     });
   });
