@@ -4,22 +4,22 @@ const { like, term } = Matchers;
 exports.allFilmsResponse = {
   films: [
     {
-      id: 1,
+      id: like(1),
       Name: "Star Wars",
-      Description: "Space",
-      Year: 1980,
+      Description: term({ generate: "Space", matcher: "^\\w+$" }),
+      Year: like(1980),
     },
     {
-      id: 2,
+      id: like(2),
       Name: "Superman",
-      Description: "Comic",
-      Year: 1986,
+      Description: term({ generate: "Comic", matcher: "^\\w+$" }),
+      Year: like(1986),
     },
     {
-      id: 3,
+      id: like(3),
       Name: "Indiana Jones",
-      Description: "Adventures",
-      Year: 1985,
+      Description: term({ generate: "Adventures", matcher: "^\\w+$" }),
+      Year: like(1985),
     },
   ],
 };
@@ -29,6 +29,6 @@ exports.oneFilmResponse = {
     id: 1,
     Name: "Star Wars",
     Description: "Space",
-    Year: 1980,
+    Year: like(1980),
   },
 };
