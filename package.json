@@ -16,7 +16,8 @@
     "pact-server": "mocha ./api/test/apiPact.spec.js --timeout 10000",
     "firstPact-server": "mocha ./api/test/firstProviderPact.spec.js --timeout 10000",
     "pact-server-python": "cd ./api_python/ && invoke ProviderPact",
-    "pact-server-Several": "mocha ./api/test/apiPactSeveralClients.spec.js --timeout 10000"
+    "pact-server-Several": "mocha ./api/test/apiPactSeveralClients.spec.js --timeout 10000",
+    "publish-pacts": "node ./publish.pacts.js"
   },
   "author": "Francisco Moreno",
   "license": "MIT",
