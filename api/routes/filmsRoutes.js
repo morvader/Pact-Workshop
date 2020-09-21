@@ -2,6 +2,8 @@
 module.exports = function (app) {
   var filmList = require("../controllers/filmsController");
 
+  app.route("/init").post(filmList.list_init_data);
+
   // filmList Routes
   app.route("/films").get(filmList.list_all_films).post(filmList.create_a_film);
 

@@ -5,6 +5,14 @@ const filmRepository = new FilmRepository();
 
 exports.filmRepository = filmRepository;
 
+exports.list_init_data = function (req, res) {
+  filmRepository.clear();
+  filmRepository.insert(new Film(1, "Star Wars", "Space", 1980));
+  filmRepository.insert(new Film(2, "Superman", "Comic", 1986));
+  filmRepository.insert(new Film(3, "Indiana Jones", "Adventures", 1985));
+  res.end();
+};
+
 exports.list_all_films = function (req, res) {
   const response = {
     films: filmRepository.fetchAll(),
