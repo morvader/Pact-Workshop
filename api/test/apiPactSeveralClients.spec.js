@@ -28,16 +28,18 @@ describe("Pruebas integración cliente", () => {
   after(() => {
     server.close();
   });
-  it("Verify Pact Insert", () => {
+  xit("Verify Pact Insert", () => {
     let clienteInsert = {
-      provider: "Films Provider",
-      providerBaseUrl: "http://localhost:3000",
-      pactUrls: [
-        path.resolve(
-          __dirname,
-          "../../pacts/insert_films_client-films_provider.json"
-        ),
+      provider: "FilmsProvider",
+      consumerVersionSelectors: [
+        { consumer: "Insert Films Client", latest: true },
       ],
+      providerBaseUrl: "http://localhost:3000",
+      pactBrokerUrl: process.env.PACT_BROKER_URL || "http://localhost:8000",
+      pactBrokerUsername: process.env.PACT_BROKER_USERNAME || "pact_workshop",
+      pactBrokerPassword: process.env.PACT_BROKER_PASSWORD || "pact_workshop",
+      providerVersion: "1.0.0",
+      publishVerificationResult: true,
     };
     return new Verifier(clienteInsert).verifyProvider().then((output) => {
       console.log("Pact *INSERT* Verification Complete!");
@@ -46,11 +48,14 @@ describe("Pruebas integración cliente", () => {
   });
   it("Verify Pact Normal", () => {
     let clienteNormal = {
-      provider: "Films Provider",
+      provider: "FilmsProvider",
+      consumerVersionSelectors: [{ consumer: "FilmsClient", latest: true }],
       providerBaseUrl: "http://localhost:3000",
-      pactUrls: [
-        path.resolve(__dirname, "../../pacts/films_client-films_provider.json"),
-      ],
+      pactBrokerUrl: process.env.PACT_BROKER_URL || "http://localhost:8000",
+      pactBrokerUsername: process.env.PACT_BROKER_USERNAME || "pact_workshop",
+      pactBrokerPassword: process.env.PACT_BROKER_PASSWORD || "pact_workshop",
+      providerVersion: "1.0.0",
+      publishVerificationResult: true,
       stateHandlers: {
         "Generate films": () => {
           controller.filmRepository.clear();

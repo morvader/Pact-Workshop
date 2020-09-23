@@ -13,11 +13,12 @@
     "generate-pact-client": "mocha ./client/test/consumerPact.spec.js --timeout 10000",
     "generate-FirstPact-client": "mocha ./client/test/firstPact.spec.js --timeout 10000",
     "generate-pact-client-insert": "mocha ./client_insert/test/consumerPact.spec.js --timeout 10000",
-    "pact-server": "mocha ./api/test/apiPact.spec.js --timeout 10000",
+    "pact-server": "mocha ./api/test/apiPact.spec.js --timeout 30000",
     "firstPact-server": "mocha ./api/test/firstProviderPact.spec.js --timeout 10000",
     "pact-server-python": "cd ./api_python/ && invoke ProviderPact",
     "pact-server-Several": "mocha ./api/test/apiPactSeveralClients.spec.js --timeout 10000",
-    "publish-pacts": "node ./publish.pacts.js"
+    "publish-pacts-Broker": "node ./PactBroker/publish.pactBroker.js",
+    "publish-pacts-PactFlow": "node ./PactBroker/publish.pactFlow.js"
   },
   "author": "Francisco Moreno",
   "license": "MIT",
