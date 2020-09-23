@@ -7,10 +7,10 @@
   "events": [
     {
       "name": "contract_published"
-    },
-    {
-      "name": "provider_verification_published"
     }
+    // {
+    //   "name": "contract_content_changed"
+    // }
   ],
   "request": {
     "method": "POST",
