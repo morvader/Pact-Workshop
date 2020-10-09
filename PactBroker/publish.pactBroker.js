@@ -1,9 +1,6 @@
 const pact = require("@pact-foundation/pact-node");
 const path = require("path");
 
-let pactBrokerUrl =
-  process.env.PACT_BROKER_URL || "https://franciscomoreno.pactflow.io";
-
 let pactBrokerUsername = process.env.PACT_BROKER_USERNAME || "pact_workshop";
 let pactBrokerPassword = process.env.PACT_BROKER_PASSWORD || "pact_workshop";
 
