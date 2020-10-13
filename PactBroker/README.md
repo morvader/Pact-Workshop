@@ -25,16 +25,17 @@ Pasos para crear un API-TOKEN.
 
 Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jenkins independientes, nosotros lo haremos sobre la misma por simplificar el proceso.
 
-### Configurar Jobs de publicación de pactos
-
 - Configuración previa Pact Broker con docker
   - Para permitir la conexión entre el contenedor de docker y nuestro Jenkins local debemos añadir las siguientes líneas al archivo docker-compose
     - `PACT_BROKER_WEBHOOK_SCHEME_WHITELIST: http`
     - `PACT_BROKER_WEBHOOK_HOST_WHITELIST: 192.168.0.12`
 - Iniciar Pact Broker: `docker-compose up`
-- Arrancar Jenkins en local
+
+### JOB - CONSUMER: Publicación de pactos
+
+- Ir a Jenkins
 - Crear una tarea de tipo "**Pipeline**"
-  - En este caso la llamaremos: "PubilshPacts"
+  - En este caso la llamaremos: "PublishPacts"
 - _Este paso es opcional_. Podríamos configurar esta tarea para que se ejecute cuando detecte cambios en el repositorio
   - Indicar el GitHub Project correspondiente
   - Configurar la periodicidad de consulta del repositorio
@@ -42,9 +43,8 @@ Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jen
 - Crear el pipeline para creación y publicación de pactos
 
   - ```groovy
-        pipeline {
+    pipeline {
         agent any
-
         stages {
             stage('Get project'){
                 steps{
@@ -69,7 +69,66 @@ Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jen
 - Con esto, ya deberíamos visualizar los pactos en PactBroker
   - <http://localhost:8000>
 
-## NEW PACT - CREATE WEBHOOK
+### JOB - PROVIDER: Verificar pactos
+
+- Ir a Jenkins
+- Crear una tarea de tipo "**Pipeline**"
+  - En este caso la llamaremos: "VerifyPacts"
+- Este pipeline realizará varias tareas:
+  - Verificar que el pactos se cumplen
+  - Publicar los resultados de la verificación en el Pact Broker
+  - Llamar al comando de Pact "**can i deploy**" para saber si es seguro desplegar el servidor
+- Pipeline:
+  
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Get project') {
+            steps {
+                git branch: '6-PactBroker', url: 'https://github.com/morvader/Pact-Workshop'
+                script {
+                    if (isUnix()) {
+                        sh 'npm install'
+                    }
+                    else {
+                        bat 'npm install'
+                    }
+                }
+            }
+        }
+        stage('Create Pacts') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'npm run pact-server'
+                    }
+                    else {
+                        bat 'npm run pact-server'
+                    }
+                }
+            }
+        }
+        stage('Can-I-Deploy Server') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'npx pact-broker can-i-deploy --pacticipant FilmsProvider --broker-base-url http://localhost:8000 --broker-username pact_workshop --broker-password pact_workshop --latest'
+                    }
+                    else {
+                        bat 'npx pact-broker can-i-deploy --pacticipant FilmsProvider --broker-base-url http://localhost:8000 --broker-username pact_workshop --broker-password pact_workshop --latest'
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+- Lo deseable es que este paso se ejecute automáticamente cada vez que los pactos se modifiquen, para ello, en el paso siguiente veremos cómo crear un Webhook desde Pact Broker
+- Para ello será necesario que en la configuración de esta tarea marquemos el check de que permite **ejecuciones remotas**.
+
+## CREATE WEBHOOK
 
 Una vez que tenemos los pactos subidos, vamos a crear un Webhook en pact-broker para que proveedor pueda verificar su validez cada vez que haya algún cambio en los contratos.
 
@@ -109,6 +168,16 @@ Ir al Pact Broker
 
 ## CAN I DEPLOY
 
+Esta utilidad, incluida en la instalación de básica de Pact, indicará cuándo es seguro desplegar alguna de las partes que formen parte de los pactos albergados en Pact Broker.
+
+Se podrían dar la siguiente casuísticas:
+
+- Pactos publicados por el consumidor pero el consumidor aún no los ha verificado: FALSO. Motivo: No se puede determinar
+- Pactos publicados por el consumidor pero fallan al ser verificados por el proveedor: FALSO. Motivo: Fallo en verificación
+- Pactos publicados por el consumidor y el proveedor verifica que son correctos: OK. Motivo: Es seguro desplegar
+
+Estos comandos podrían lanzarse desde línea de comandos en cualquier momento.
+
 ### CHECK CLIENT
 
 `npx pact-broker can-i-deploy --pacticipant FilmsClient --broker-base-url http://localhost:8000 --broker-username pact_workshop --broker-password pact_workshop --latest`
@@ -121,7 +190,3 @@ Ir al Pact Broker
 
 <https://blog.testproject.io/2020/06/09/integrating-consumer-contract-testing-in-build-pipelines/>
 <https://kreuzwerker.de/post/integrating-contract-tests-into-build-pipelines-with-pact-broker-and>
-
-```
-
-```
