@@ -2,6 +2,8 @@
 
 A continuación veremos los pasos para validar pactos de consumidor y proveedor en un workflow de integración continua con Jenkins.
 
+[[TOC]]
+
 ## PASO PREVIOS
 
 Disponer de un API-Token en Jenkins para un usuario.
@@ -13,7 +15,6 @@ Pasos para crear un API-TOKEN.
 - Añadir un nuevo API TOKEN
 - Copiar el valor
 - Para poder realizar llamadas POST desde fuera, lo más cómodo es codificar la clave en Base64 y pasarla como cabecera de autenticación
-
   - Ir a <https://www.base64encode.org/>
   - Introducir: `nombreUsuarioJenkins:API-TOKEN`
     - Por ejemplo: `fran:11505d62fcdd42d3d7d645ee3f1414297c`
@@ -128,11 +129,47 @@ pipeline {
 - Lo deseable es que este paso se ejecute automáticamente cada vez que los pactos se modifiquen, para ello, en el paso siguiente veremos cómo crear un Webhook desde Pact Broker
 - Para ello será necesario que en la configuración de esta tarea marquemos el check de que permite **ejecuciones remotas**.
 
-## CREATE WEBHOOK
+### JOB - CONSUMER: Publicar consumidor
 
-Una vez que tenemos los pactos subidos, vamos a crear un Webhook en pact-broker para que proveedor pueda verificar su validez cada vez que haya algún cambio en los contratos.
+Una vez que tanto proveedor como consumidor hayan publicado y verificado los pactos, como último paso del proceso, debemos verificar que es seguro desplegar el consumir mediante la herramienta "**can-i-deploy**".
 
-### PASOS
+Para ello, en Jenkins crearemos otro proceso que sea llamado desde el Pact Broker cada vez que el proveedor verifique los pactos.
+
+Paso a seguir:
+- Crear tarea en Jenkins de tipo "Pipeline"
+  - En este caso la llamaremos: "Deploy Consumer"
+- Permitir que la tarea pueda ser ejecutada remotamente marcando el check correspondiente.
+- Pipeline:
+- 
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Can-I-Deploy Consumer') {
+            steps {
+                dir('../PublishPacts'){
+                script {
+                    if (isUnix()) {
+                        sh 'npx pact-broker can-i-deploy --pacticipant FilmsClient --broker-base-url http://localhost:8000 --broker-username pact_workshop --broker-password pact_workshop --latest'
+                    }
+                    else {
+                        bat 'npx pact-broker can-i-deploy --pacticipant FilmsClient --broker-base-url http://localhost:8000 --broker-username pact_workshop --broker-password pact_workshop --latest'
+                    }
+                }
+                }
+            }
+        }
+    }
+}
+```
+
+## CREAR WEBHOOKS
+
+Una vez que tenemos los pactos subidos, vamos a crear dos webhooks en Pact Broker. Uno de ellos para que el proveedor pueda verificar la validez de los contratos cada vez que haya algún cambio en los contratos y otro para que el proveedor sepa si pueda desplegarse una vez que el proveedor publique los resultados.
+
+Creados dos webhooks distintos puesto, que cada una estas tareas se crea en tareas de jenkins separadas.
+
+### Verificación del proveedor
 
 Ir al Pact Broker
 
@@ -160,6 +197,29 @@ Ir al Pact Broker
     "url": "http://192.168.0.12:8080/job/VerifyPacts/build",
     "headers": {
       // Autorización anteriormente creada y codificada en base64
+      "authorization": "Basic ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx"
+    }
+  }
+}
+```
+
+### ¿Consumidor deplegable?
+
+Creamos otro webhook para que el consumidor sepa si puede desplegarse una vez que el proveedor publique los resultados.
+
+Para ello, creamos un webhook de la misma manera que el anterior pero con el siguiente BODY:
+
+```json
+{
+  "events": [
+    {
+      "name": "provider_verification_published"
+    }
+  ],
+  "request": {
+    "method": "POST",
+    "url": "http://192.168.0.12:8080/job/DeployConsumer/build",
+    "headers": {
       "authorization": "Basic ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx"
     }
   }
