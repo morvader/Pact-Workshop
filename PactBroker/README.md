@@ -34,7 +34,7 @@ Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jen
 - Iniciar Pact Broker: `docker-compose up`
 - Arrancar Jenkins en local
 - Crear una tarea de tipo "**Pipeline**"
-  - En este caso la llamaremos: "Consumer-PubilshPacts"
+  - En este caso la llamaremos: "PubilshPacts"
 - _Este paso es opcional_. Podríamos configurar esta tarea para que se ejecute cuando detecte cambios en el repositorio
   - Indicar el GitHub Project correspondiente
   - Configurar la periodicidad de consulta del repositorio
@@ -75,13 +75,18 @@ Una vez que tenemos los pactos subidos, vamos a crear un Webhook en pact-broker 
 
 ### PASOS
 
-En pact broker
+Ir al Pact Broker
 
 - Ir a <http://localhost:8000>
-- 
+- Si el paso anterior de publicación ha funcionado correctamente, deberían mostrarse los pactos publicados
+- En la columna de "*Webhook status*" pulsar en "**Create**"
+- En la siguiente vista, en la fila de "*pb:create*", en la columna "*NON-GET*" pulsar en el símbolo "**!**"
+- Se mostrar una ventana para introducir los valores de una petición *POST* para crear el webhook. En ella, introducir el siguiente BODY:
 
 ```json
 {
+  //Eventos que harán que el webhook se ejecute
+  //Para la demo, se ejecutará cada vez que se publique el contrato. En un entorno real, lo habitual sería lanzarlo cada vez que cambien los contratos
   "events": [
     {
       "name": "contract_published"
@@ -92,9 +97,11 @@ En pact broker
   ],
   "request": {
     "method": "POST",
-    "url": "http://192.168.0.12:8080/job/Pact/build",
+    //URL del job del jenkins
+    "url": "http://192.168.0.12:8080/job/VerifyPacts/build",
     "headers": {
-      "authorization": "Basic ZnJhbjoxMTg2NGJjZDVhYTQ3YTg3MzdhNjkwNzNkOGVhZDhiZmMw"
+      // Autorización anteriormente creada y codificada en base64
+      "authorization": "Basic ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx"
     }
   }
 }
