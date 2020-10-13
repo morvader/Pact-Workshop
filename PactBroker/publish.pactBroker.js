@@ -1,6 +1,7 @@
 const pact = require("@pact-foundation/pact-node");
 const path = require("path");
 
+let pactBrokerUrl = "http://localhost:8000";
 let pactBrokerUsername = process.env.PACT_BROKER_USERNAME || "pact_workshop";
 let pactBrokerPassword = process.env.PACT_BROKER_PASSWORD || "pact_workshop";
 
@@ -12,7 +13,7 @@ const gitHash =
 
 const opts = {
   pactFilesOrDirs: [path.resolve(__dirname, "../pacts/")],
-  pactBroker: "http://localhost:8000",
+  pactBroker: pactBrokerUrl,
   //pactBrokerToken: "jiH7q2QKCiMvYW4Y1OREpQ",
   pactBrokerUsername: pactBrokerUsername,
   pactBrokerPassword: pactBrokerPassword,

@@ -17,9 +17,9 @@ Pasos para crear un API-TOKEN.
   - Ir a <https://www.base64encode.org/>
   - Introducir: `nombreUsuarioJenkins:API-TOKEN`
     - Por ejemplo: `fran:11505d62fcdd42d3d7d645ee3f1414297c`
-    - Guardar el código generado. Por ejemplo: `ZnJhbjoxMTUwNWQ2MmZjZGQ0MmQzZDdkNjQ1ZWUzZjE0MTQyOTdj`
+    - Guardar el código generado. Por ejemplo: `ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx`
   - Con esto, las llamadas que realicemos a nuestro Jenkins para lanzar los jobs deberán tener la cabecera:
-    - `Authorizartion: Basic ZnJhbjoxMTUwNWQ2MmZjZGQ0MmQzZDdkNjQ1ZWUzZjE0MTQyOTdj`
+    - `Authorizartion: Basic ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx`
 
 ## CONFIGURAR WORKFLOW
 
@@ -69,7 +69,16 @@ Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jen
 - Con esto, ya deberíamos visualizar los pactos en PactBroker
   - <http://localhost:8000>
 
-## CREATE WEBHOOK
+## NEW PACT - CREATE WEBHOOK
+
+Una vez que tenemos los pactos subidos, vamos a crear un Webhook en pact-broker para que proveedor pueda verificar su validez cada vez que haya algún cambio en los contratos.
+
+### PASOS
+
+En pact broker
+
+- Ir a <http://localhost:8000>
+- 
 
 ```json
 {
