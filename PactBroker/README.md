@@ -10,40 +10,41 @@ Disponer de un API-Token en Jenkins para un usuario.
 
 Pasos para crear un API-TOKEN.
 
-- Hacer click en el nombre de usuario de Jenkins (arriba a la derecha)
-- En el menú izquierdo ir a "Configurar"
-- Añadir un nuevo API TOKEN
-- Copiar el valor
-- Para poder realizar llamadas POST desde fuera, lo más cómodo es codificar la clave en Base64 y pasarla como cabecera de autenticación
-  - Ir a <https://www.base64encode.org/>
-  - Introducir: `nombreUsuarioJenkins:API-TOKEN`
-    - Por ejemplo: `fran:11505d62fcdd42d3d7d645ee3f1414297c`
+1. Hacer click en el nombre de usuario de Jenkins (arriba a la derecha)
+2. En el menú izquierdo ir a "Configurar"
+3. Añadir un nuevo API TOKEN
+4. Copiar el valor
+5. Para poder realizar llamadas POST desde fuera, lo más cómodo es codificar la clave en Base64 y pasarla como cabecera de autenticación
+    - Ir a <https://www.base64encode.org/>
+    - Introducir: `nombreUsuarioJenkins:API-TOKEN`
+       - Por ejemplo: `fran:11505d62fcdd42d3d7d645ee3f1414297c`
     - Guardar el código generado. Por ejemplo: `ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx`
-  - Con esto, las llamadas que realicemos a nuestro Jenkins para lanzar los jobs deberán tener la cabecera:
+  
+6. Con esto, las llamadas que realicemos a nuestro Jenkins para lanzar los jobs deberán tener la cabecera:
     - `Authorizartion: Basic ZnJhbjoxMWRlZWE5ODBiNmMxZmJkZWYxMjRlZGQ0ZWY3NjhkZWMx`
 
 ## CONFIGURAR WORKFLOW
 
 Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jenkins independientes, nosotros lo haremos sobre la misma por simplificar el proceso.
 
-- Configuración previa Pact Broker con docker
-  - Para permitir la conexión entre el contenedor de docker y nuestro Jenkins local debemos añadir las siguientes líneas al archivo docker-compose
-    - `PACT_BROKER_WEBHOOK_SCHEME_WHITELIST: http`
-    - `PACT_BROKER_WEBHOOK_HOST_WHITELIST: 192.168.0.12`
-- Iniciar Pact Broker: `docker-compose up`
+1. Configuración previa Pact Broker con docker
+     - Para permitir la conexión entre el contenedor de docker y nuestro Jenkins local debemos añadir las siguientes líneas al archivo docker-compose
+       - `PACT_BROKER_WEBHOOK_SCHEME_WHITELIST: http`
+       - `PACT_BROKER_WEBHOOK_HOST_WHITELIST: 192.168.0.12`
+2. Iniciar Pact Broker: `docker-compose up`
 
 ### JOB - CONSUMER: Publicación de pactos
 
-- Ir a Jenkins
-- Crear una tarea de tipo "**Pipeline**"
-  - En este caso la llamaremos: "PublishPacts"
-- _Este paso es opcional_. Podríamos configurar esta tarea para que se ejecute cuando detecte cambios en el repositorio
-  - Indicar el GitHub Project correspondiente
-  - Configurar la periodicidad de consulta del repositorio
-    - Por ejemplo, cada 5 minutos -> `*/5 * * * * `
-- Crear el pipeline para creación y publicación de pactos
+1. Ir a Jenkins
+2. Crear una tarea de tipo "**Pipeline**"
+     - En este caso la llamaremos: "PublishPacts"
+3. _Este paso es opcional_. Podríamos configurar esta tarea para que se ejecute cuando detecte cambios en el repositorio
+     - Indicar el GitHub Project correspondiente
+     - Configurar la periodicidad de consulta del repositorio
+       - Por ejemplo, cada 5 minutos -> `*/5 * * * * `
+4. Crear el pipeline para creación y publicación de pactos
 
-  - ```groovy
+  ```groovy
     pipeline {
         agent any
         stages {
@@ -65,21 +66,21 @@ Los siguientes pasos, podría tener sentido realizarlos en dos instancias de Jen
             }
         }
     }
-    ```
+  ```
 
-- Con esto, ya deberíamos visualizar los pactos en PactBroker
-  - <http://localhost:8000>
+5. Con esto, ya deberíamos visualizar los pactos en PactBroker
+    - <http://localhost:8000>
 
 ### JOB - PROVIDER: Verificar pactos
 
-- Ir a Jenkins
-- Crear una tarea de tipo "**Pipeline**"
-  - En este caso la llamaremos: "VerifyPacts"
-- Este pipeline realizará varias tareas:
-  - Verificar que el pactos se cumplen
-  - Publicar los resultados de la verificación en el Pact Broker
-  - Llamar al comando de Pact "**can i deploy**" para saber si es seguro desplegar el servidor
-- Pipeline:
+1. Ir a Jenkins
+2. Crear una tarea de tipo "**Pipeline**"
+    - En este caso la llamaremos: "VerifyPacts"
+3. Este pipeline realizará varias tareas:
+    - Verificar que el pactos se cumplen
+    - Publicar los resultados de la verificación en el Pact Broker
+    - Llamar al comando de Pact "**can i deploy**" para saber si es seguro desplegar el servidor
+4. Pipeline:
   
 ```groovy
 pipeline {
@@ -136,11 +137,11 @@ Una vez que tanto proveedor como consumidor hayan publicado y verificado los pac
 Para ello, en Jenkins crearemos otro proceso que sea llamado desde el Pact Broker cada vez que el proveedor verifique los pactos.
 
 Paso a seguir:
-- Crear tarea en Jenkins de tipo "Pipeline"
-  - En este caso la llamaremos: "Deploy Consumer"
-- Permitir que la tarea pueda ser ejecutada remotamente marcando el check correspondiente.
-- Pipeline:
-- 
+1. Crear tarea en Jenkins de tipo "Pipeline"
+     - En este caso la llamaremos: "Deploy Consumer"
+2. Permitir que la tarea pueda ser ejecutada remotamente marcando el check correspondiente.
+3. Pipeline:
+
 ```groovy
 pipeline {
     agent any
@@ -171,13 +172,13 @@ Creados dos webhooks distintos puesto, que cada una estas tareas se crea en tare
 
 ### Verificación del proveedor
 
-Ir al Pact Broker
+Desde el Pact Broker
 
-- Ir a <http://localhost:8000>
-- Si el paso anterior de publicación ha funcionado correctamente, deberían mostrarse los pactos publicados
-- En la columna de "*Webhook status*" pulsar en "**Create**"
-- En la siguiente vista, en la fila de "*pb:create*", en la columna "*NON-GET*" pulsar en el símbolo "**!**"
-- Se mostrar una ventana para introducir los valores de una petición *POST* para crear el webhook. En ella, introducir el siguiente BODY:
+1. Acceder a <http://localhost:8000>
+2. Si el paso anterior de publicación ha funcionado correctamente, deberían mostrarse los pactos publicados
+3. En la columna de "*Webhook status*" pulsar en "**Create**"
+4. En la siguiente vista, en la fila de "*pb:create*", en la columna "*NON-GET*" pulsar en el símbolo "**!**"
+5. Se mostrar una ventana para introducir los valores de una petición *POST* para crear el webhook. En ella, introducir el siguiente BODY:
 
 ```json
 {
